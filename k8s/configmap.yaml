@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: book-cafe-config
+data:
+  APP_NAME: "Page & Pour Book Cafe"
+  APP_VERSION: "v1.0.0"
+  APP_ENV: "kubernetes"
+  PORT: "8000"
