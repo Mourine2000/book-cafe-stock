@@ -84,3 +84,20 @@ def test_validation_errors() -> None:
     assert client.post("/books", json={}).status_code == 400
     assert client.post("/members", json={"name": "OnlyName"}).status_code == 400
     assert client.patch("/books/1/stock", json={"in_stock": "yes"}).status_code == 400
+
+
+def test_ui_pages_and_stylesheet() -> None:
+    client = app.test_client()
+
+    css_resp = client.get("/static/css/style.css")
+    assert css_resp.status_code == 200
+    assert b"--bg-cream" in css_resp.data
+
+    search_resp = client.get("/search?genre=fantasy")
+    assert search_resp.status_code == 200
+    assert b"Piranesi" in search_resp.data
+
+    about_resp = client.get("/about")
+    assert about_resp.status_code == 200
+    assert b"Cardamom Oat Latte" in about_resp.data
+    assert b"214 Linden Row" in about_resp.data
