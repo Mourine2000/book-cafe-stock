@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Search &amp; Genres · {{ app_name }}{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <h1>Search Books by Title, Author, or Genre</h1>
+        <p class="section-subtitle">Click a genre icon below or search by keyword to filter live cafe stock</p>
+      </div>
+    </div>
+
+    <form class="search-box" method="get" action="{{ url_for('search_page') }}">
+      <input
+        type="text"
+        name="q"
+        value="{{ query or '' }}"
+        placeholder="Search by title, author, or genre (e.g. Le Guin, Piranesi, sci-fi)..."
+        aria-label="Search books"
+      />
+      {% if selected_genre and selected_genre != 'all' %}
+      <input type="hidden" name="genre" value="{{ selected_genre }}" />
+      {% endif %}
+      <button class="btn btn-primary" type="submit">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+        </svg>
+        Search
+      </button>
+      {% if query or (selected_genre and selected_genre != 'all') %}
+      <a class="btn btn-outline" href="{{ url_for('search_page') }}">Reset</a>
+      {% endif %}
+    </form>
+
+    <div class="genre-bar" role="navigation" aria-label="Filter by genre">
+      {% for g in genres %}
+      {% if query %}
+        {% set chip_url = url_for('search_page', genre=g.slug, q=query) %}
+      {% else %}
+        {% set chip_url = url_for('search_page', genre=g.slug) %}
+      {% endif %}
+      <a
+        class="genre-chip {% if selected_genre == g.slug %}active{% endif %}"
+        href="{{ chip_url }}"
+      >
+        {% if g.icon == 'planet' %}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="7"/><path d="M2 12h20"/></svg>
+        {% elif g.icon == 'sparkles' %}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 1.9 5.8L20 11l-6.1 2.2L12 19l-1.9-5.8L4 11l6.1-2.2Z"/></svg>
+        {% elif g.icon == 'feather' %}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" y1="8" x2="2" y2="22"/></svg>
+        {% elif g.icon == 'quill' %}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+        {% elif g.icon == 'compass' %}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+        {% else %}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        {% endif %}
+        <span>{{ g.label }}</span>
+      </a>
+      {% endfor %}
+    </div>
+
+    <p class="section-subtitle" style="margin-bottom:16px;">
+      Showing <strong>{{ results|length }}</strong> matching book{{ '' if results|length == 1 else 's' }}.
+    </p>
+
+    {% if results %}
+    <div class="grid-2">
+      {% for book in results %}
+      <article class="card">
+        <div class="product-meta">
+          <span class="badge badge-genre">{{ book.genre }}</span>
+          {% if book.in_stock %}
+          <span class="badge badge-in">In Stock</span>
+          {% else %}
+          <span class="badge badge-out">Out of Stock</span>
+          {% endif %}
+        </div>
+        <h3>{{ book.title }}</h3>
+        <p>Author: <strong>{{ book.author }}</strong> · Catalog ID: <code>#{{ book.id }}</code></p>
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="card">
+      <h3>No matching books found</h3>
+      <p>Try another genre icon above or clear your search term to browse the full shelf.</p>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

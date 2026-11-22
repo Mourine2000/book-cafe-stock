@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}About Us, Menu &amp; Contact · {{ app_name }}{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container">
+    <div class="card" style="margin-bottom:28px;">
+      <span class="badge badge-genre">About Us</span>
+      <h1 style="margin:10px 0 12px;">A Cozy Corner for Readers &amp; Espresso Lovers</h1>
+      <p style="font-size:1.02rem;color:var(--espresso);max-width:780px;">
+        Founded in the heart of the Literary Quarter, <strong>{{ app_name }}</strong> brings together an independent neighborhood bookshop, a small-batch espresso bar, and a community reading club. Instead of guessing whether a sought-after title is back on our wooden shelves, readers subscribe by genre or author and get instant restock alerts.
+      </p>
+    </div>
+
+    <div class="section-header">
+      <div>
+        <h2>Drinks, Pastries &amp; Bookish Merchandise</h2>
+        <p class="section-subtitle">Available in-cafe alongside our curated book collection</p>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      {% for item in products %}
+      <article class="card">
+        <div class="product-art" aria-hidden="true">
+          {% if item.visual == 'latte' %}
+          <svg width="68" height="68" viewBox="0 0 24 24" fill="none" stroke="#6b422c" stroke-width="1.7"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>
+          {% elif item.visual == 'tea' %}
+          <svg width="68" height="68" viewBox="0 0 24 24" fill="none" stroke="#3e6b58" stroke-width="1.7"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><path d="M9 12c1.5-2 4.5-2 6 0"/></svg>
+          {% elif item.visual == 'croissant' %}
+          <svg width="68" height="68" viewBox="0 0 24 24" fill="none" stroke="#b85d3b" stroke-width="1.7"><path d="M4.6 13.11 5.79 3.21c1.89-.69 4.19-1.1 6.21-1.1s4.32.41 6.21 1.1l1.19 9.9c.23 1.91-.68 3.79-2.35 4.78-3.09 1.83-6.99 1.83-10.08 0-1.67-.99-2.58-2.87-2.37-4.78Z"/></svg>
+          {% elif item.visual == 'brioche' %}
+          <svg width="68" height="68" viewBox="0 0 24 24" fill="none" stroke="#944629" stroke-width="1.7"><circle cx="12" cy="12" r="8"/><path d="M12 8a4 4 0 0 1 4 4 4 4 0 0 1-4 4 4 4 0 0 1-4-4"/></svg>
+          {% elif item.visual == 'tote' %}
+          <svg width="68" height="68" viewBox="0 0 24 24" fill="none" stroke="#2c1e16" stroke-width="1.7"><path d="M6 7h12l1 13H5L6 7Z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></svg>
+          {% else %}
+          <svg width="68" height="68" viewBox="0 0 24 24" fill="none" stroke="#b85d3b" stroke-width="1.7"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+          {% endif %}
+        </div>
+        <div class="product-meta">
+          <span class="badge badge-genre">{{ item.category }}</span>
+          <span class="price-tag">{{ item.price }}</span>
+        </div>
+        <h3>{{ item.name }}</h3>
+        <p>{{ item.description }}</p>
+        <span class="badge badge-in">{{ item.badge }}</span>
+      </article>
+      {% endfor %}
+    </div>
+
+    <div class="grid-2" style="margin-top:32px;">
+      <div class="card">
+        <div class="footer-item" style="color:var(--espresso);font-weight:700;font-size:1.15rem;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b85d3b" stroke-width="2" aria-hidden="true">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+          </svg>
+          <span>Contact the Cafe</span>
+        </div>
+        <p><strong>Phone:</strong> +1 (555) 234-8890</p>
+        <p><strong>Email:</strong> hello@pageandpour.example</p>
+        <p><strong>Book Club Desk:</strong> club@pageandpour.example</p>
+      </div>
+
+      <div class="card">
+        <div class="footer-item" style="color:var(--espresso);font-weight:700;font-size:1.15rem;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3e6b58" stroke-width="2" aria-hidden="true">
+            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+          <span>Visit Our Location</span>
+        </div>
+        <p><strong>Address:</strong> 214 Linden Row, Literary Quarter (2 blocks from Central Library Station)</p>
+        <p><strong>Opening Hours:</strong> Mon–Fri 07:30–21:00 · Sat–Sun 08:30–22:00</p>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
