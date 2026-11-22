@@ -91,7 +91,8 @@ def test_ui_pages_and_stylesheet() -> None:
 
     css_resp = client.get("/static/css/style.css")
     assert css_resp.status_code == 200
-    assert b"--bg-cream" in css_resp.data
+    assert b"--bg-beige" in css_resp.data
+    assert b"--bg-sage-mist" in css_resp.data
 
     search_resp = client.get("/search?genre=fantasy")
     assert search_resp.status_code == 200
