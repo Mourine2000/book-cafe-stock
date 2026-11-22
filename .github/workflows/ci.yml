@@ -14,7 +14,7 @@ on:
       - "main"
 
 env:
-  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/book-cafe-stock
+  IMAGE_NAME: ghcr.io/mourine2000/book-cafe-stock
 
 jobs:
   validate-and-build:
