@@ -84,3 +84,13 @@ def test_validation_errors() -> None:
     assert client.post("/books", json={}).status_code == 400
     assert client.post("/members", json={"name": "OnlyName"}).status_code == 400
     assert client.patch("/books/1/stock", json={"in_stock": "yes"}).status_code == 400
+
+
+def test_search_books_endpoint() -> None:
+    client = app.test_client()
+    resp = client.get("/books/search?q=sci-fi")
+    assert resp.status_code == 200
+    assert resp.get_json()["count"] == 1
+
+    bad = client.get("/books/search")
+    assert bad.status_code == 400

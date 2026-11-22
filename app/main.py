@@ -232,6 +232,21 @@ def list_notifications() -> tuple[Any, int]:
     return jsonify({"notifications": _NOTIFICATIONS, "count": len(_NOTIFICATIONS)}), 200
 
 
+@app.get("/books/search")
+def search_books():
+    query = str(request.args.get("q", "")).strip().lower()
+    if not query:
+        return jsonify({"error": "Query parameter 'q' is required"}), 400
+    matches = [
+        b
+        for b in _BOOKS
+        if query in b["title"].lower()
+        or query in b["author"].lower()
+        or query in b["genre"].lower()
+    ]
+    return jsonify({"query": query, "results": matches, "count": len(matches)}), 200
+
+
 if __name__ == "__main__":
     port = int(os.getenv("PORT", "8000"))
     app.run(host="0.0.0.0", port=port)
