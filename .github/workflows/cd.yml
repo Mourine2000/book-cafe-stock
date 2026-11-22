@@ -1,0 +1,72 @@
+name: CD Pipeline (Kubernetes)
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version tag to deploy (e.g., v1.0.0, v1.1.0, v1.2.0)"
+        required: true
+        default: "v1.0.0"
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/book-cafe-stock
+
+jobs:
+  deploy-to-kubernetes:
+    runs-on: [self-hosted, Linux, X64]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Resolve release version
+        id: ver
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            VERSION="${{ inputs.version }}"
+          else
+            VERSION="${{ github.ref_name }}"
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Deploying version: ${VERSION}"
+
+      - name: Verify kubeconfig and cluster connectivity
+        run: |
+          kubectl config use-context kind-cicd-lab
+          kubectl get nodes
+
+      - name: Load image into kind if present locally on runner
+        run: |
+          IMAGE_TAG="${IMAGE_NAME}:${{ steps.ver.outputs.version }}"
+          docker pull "${IMAGE_TAG}" || true
+          if docker image inspect "${IMAGE_TAG}" >/dev/null 2>&1; then
+            kind load docker-image "${IMAGE_TAG}" --name cicd-lab
+          fi
+
+      - name: Apply ConfigMap and update Deployment image and version
+        run: |
+          VERSION="${{ steps.ver.outputs.version }}"
+          IMAGE_TAG="${IMAGE_NAME}:${VERSION}"
+          sed -i "s/APP_VERSION: \".*\"/APP_VERSION: \"${VERSION}\"/" k8s/configmap.yaml
+          kubectl apply -f k8s/configmap.yaml
+          kubectl apply -f k8s/secret.example.yaml
+          kubectl apply -f k8s/service.yaml
+          kubectl apply -f k8s/deployment.yaml
+          kubectl set image deployment/book-cafe-stock book-cafe-stock="${IMAGE_TAG}"
+
+      - name: Wait for rolling update and verify endpoints
+        run: |
+          kubectl rollout status deployment/book-cafe-stock --timeout=120s
+          kubectl get pods -o wide
+
+          kubectl port-forward svc/book-cafe-stock 18080:80 >/tmp/cd-pf.log 2>&1 &
+          PF_PID=$!
+          trap "kill ${PF_PID} 2>/dev/null || true" EXIT
+          sleep 2
+
+          curl -fsS http://127.0.0.1:18080/health
+          echo ""
+          curl -fsS http://127.0.0.1:18080/version
+          echo ""
