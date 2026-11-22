@@ -70,7 +70,7 @@ jobs:
       - name: Run container vulnerability scan (Trivy)
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: "${IMAGE_NAME}:${{ steps.meta.outputs.tag }}"
+          image-ref: "${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tag }}"
           format: "table"
           exit-code: "0"
           severity: "CRITICAL,HIGH"
