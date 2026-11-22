@@ -145,7 +145,10 @@ def create_book() -> tuple[Any, int]:
 
     author = str(payload.get("author", "Unknown Author")).strip() or "Unknown Author"
     genre = str(payload.get("genre", "general")).strip() or "general"
-    in_stock = bool(payload.get("in_stock", True))
+    raw_in_stock = payload.get("in_stock", True)
+    if not isinstance(raw_in_stock, bool):
+        return jsonify({"error": "Boolean 'in_stock' is required"}), 400
+    in_stock = raw_in_stock
 
     book = {
         "id": _NEXT_BOOK_ID,

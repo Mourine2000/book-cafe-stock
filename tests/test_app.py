@@ -84,3 +84,12 @@ def test_validation_errors() -> None:
     assert client.post("/books", json={}).status_code == 400
     assert client.post("/members", json={"name": "OnlyName"}).status_code == 400
     assert client.patch("/books/1/stock", json={"in_stock": "yes"}).status_code == 400
+
+
+def test_create_book_rejects_non_boolean_in_stock() -> None:
+    client = app.test_client()
+    resp = client.post(
+        "/books",
+        json={"title": "Misconfigured Stock Book", "in_stock": "false"},
+    )
+    assert resp.status_code == 400
