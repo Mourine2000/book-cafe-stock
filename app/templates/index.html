@@ -1,29 +1,171 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>{{ app_name }} ({{ version }})</title>
-  <style>
-    body { font-family: Arial, sans-serif; max-width: 780px; margin: 40px auto; padding: 0 16px; line-height: 1.5; }
-    code, pre { background: #f4f4f6; padding: 2px 6px; border-radius: 4px; }
-    .badge { display: inline-block; padding: 4px 10px; background: #e6f4ea; color: #137333; border-radius: 12px; font-weight: bold; }
-  </style>
-</head>
-<body>
-  <h1>{{ app_name }}</h1>
-  <p>Version: <span class="badge">{{ version }}</span> | Environment: <code>{{ env_name }}</code></p>
-  <p>Book cafe stock &amp; club member restock notification endpoints:</p>
-  <ul>
-    <li><code>GET /health</code> — Service health check</li>
-    <li><code>GET /version</code> — Current application version</li>
-    <li><code>GET /books</code> — List books and stock status</li>
-    <li><code>POST /books</code> — Add a new book (JSON: <code>{"title": "Piranesi", "author": "Susanna Clarke", "genre": "fantasy", "in_stock": true}</code>)</li>
-    <li><code>PATCH /books/&lt;id&gt;/stock</code> — Update stock status (JSON: <code>{"in_stock": true}</code>)</li>
-    <li><code>DELETE /books/&lt;id&gt;</code> — Remove a book by ID</li>
-    <li><code>GET /members</code> — List club members</li>
-    <li><code>POST /members</code> — Subscribe a member (JSON: <code>{"name": "Maya", "contact": "maya@example.com", "interest": "fantasy"}</code>)</li>
-    <li><code>GET /notifications</code> — List triggered restock and new-arrival alerts</li>
-  </ul>
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}{{ app_name }} — Books, Coffee &amp; Pastries{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="container hero-grid">
+    <div>
+      <h1>{{ app_name }}</h1>
+      <p>
+        Discover thoughtfully curated fiction, poetry, and essays paired with specialty espresso, warm morning pastries, and real-time club restock alerts.
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="{{ url_for('search_page') }}">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+          </svg>
+          Browse &amp; Search Books
+        </a>
+        <a class="btn btn-secondary" href="{{ url_for('about_page') }}">Explore Cafe Menu &amp; Location</a>
+      </div>
+    </div>
+    <div class="hero-card">
+      <h3>Today at the Cafe</h3>
+      <p style="margin-bottom:10px;font-size:0.93rem;">
+        <strong>{{ in_stock_count }}</strong> of <strong>{{ books|length }}</strong> featured titles currently on shelf · <strong>{{ member_count }}</strong> active reading club members.
+      </p>
+      <p style="margin:0;font-size:0.9rem;color:#f4e8dc;">
+        Subscribe to any genre or author below to receive automatic new-arrival and back-in-stock notifications.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <h2>Browse by Genre</h2>
+        <p class="section-subtitle">Jump directly to shelves filtered by reading mood</p>
+      </div>
+      <a href="{{ url_for('search_page') }}">Open full search &rarr;</a>
+    </div>
+    <div class="genre-bar">
+      {% for g in genres %}
+      <a class="genre-chip" href="{{ url_for('search_page', genre=g.slug) }}">
+        {% if g.icon == 'planet' %}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="7"/><path d="M2 12h20"/></svg>
+        {% elif g.icon == 'sparkles' %}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 1.9 5.8L20 11l-6.1 2.2L12 19l-1.9-5.8L4 11l6.1-2.2Z"/></svg>
+        {% elif g.icon == 'feather' %}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" y1="8" x2="2" y2="22"/></svg>
+        {% elif g.icon == 'quill' %}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+        {% elif g.icon == 'compass' %}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+        {% else %}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        {% endif %}
+        <span>{{ g.label }}</span>
+      </a>
+      {% endfor %}
+    </div>
+
+    <div class="section-header" style="margin-top:28px;">
+      <div>
+        <h2>Current Shelf Inventory</h2>
+        <p class="section-subtitle">Live stock availability tracked by our restock service</p>
+      </div>
+    </div>
+    <div class="grid-2">
+      {% for book in books %}
+      <article class="card">
+        <div class="product-meta">
+          <span class="badge badge-genre">{{ book.genre }}</span>
+          {% if book.in_stock %}
+          <span class="badge badge-in">In Stock</span>
+          {% else %}
+          <span class="badge badge-out">Awaiting Restock</span>
+          {% endif %}
+        </div>
+        <h3>{{ book.title }}</h3>
+        <p>by <strong>{{ book.author }}</strong></p>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section" style="background: var(--bg-sand); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <h2>Cafe Drinks, Pastries &amp; Bookish Goods</h2>
+        <p class="section-subtitle">Freshly prepared at the counter while you read</p>
+      </div>
+      <a href="{{ url_for('about_page') }}">See full menu &amp; story &rarr;</a>
+    </div>
+    <div class="grid-3">
+      {% for item in products[:3] %}
+      <article class="card">
+        <div class="product-art" aria-hidden="true">
+          {% if item.visual == 'latte' %}
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#6b422c" stroke-width="1.7"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>
+          {% elif item.visual == 'tea' %}
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#3e6b58" stroke-width="1.7"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><path d="M9 12c1.5-2 4.5-2 6 0"/></svg>
+          {% else %}
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#b85d3b" stroke-width="1.7"><path d="M4.6 13.11 5.79 3.21c1.89-.69 4.19-1.1 6.21-1.1s4.32.41 6.21 1.1l1.19 9.9c.23 1.91-.68 3.79-2.35 4.78-3.09 1.83-6.99 1.83-10.08 0-1.67-.99-2.58-2.87-2.37-4.78Z"/></svg>
+          {% endif %}
+        </div>
+        <div class="product-meta">
+          <span class="badge badge-genre">{{ item.category }}</span>
+          <span class="price-tag">{{ item.price }}</span>
+        </div>
+        <h3>{{ item.name }}</h3>
+        <p>{{ item.description }}</p>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container grid-2">
+    <div class="card">
+      <h2>Join the Restock Club</h2>
+      <p>Get notified automatically whenever a book in your favorite genre or by your favorite author arrives in stock.</p>
+      {% if subscribed %}
+      <div class="alert-success">You're subscribed! We'll alert you on matching arrivals and restocks.</div>
+      {% endif %}
+      <form method="post" action="{{ url_for('subscribe_from_ui') }}">
+        <div class="form-group">
+          <label for="member-name">Your Name</label>
+          <input id="member-name" name="name" type="text" placeholder="Maya Lin" required />
+        </div>
+        <div class="form-group">
+          <label for="member-contact">Email or Phone</label>
+          <input id="member-contact" name="contact" type="text" placeholder="maya@example.com" required />
+        </div>
+        <div class="form-group">
+          <label for="member-interest">Favorite Genre or Author</label>
+          <select id="member-interest" name="interest">
+            <option value="all">All New Arrivals</option>
+            <option value="sci-fi">Sci-Fi</option>
+            <option value="fantasy">Fantasy</option>
+            <option value="essays">Essays</option>
+            <option value="poetry">Poetry</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" type="submit">Subscribe to Alerts</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Recent Club Notifications ({{ notifications|length }})</h2>
+      <p>Live restock and new-arrival messages triggered by inventory updates.</p>
+      {% if notifications %}
+        {% for n in notifications[-4:]|reverse %}
+        <div style="padding:10px 12px;background:var(--bg-cream);border-radius:10px;border:1px solid var(--border);margin-bottom:10px;">
+          <span class="badge badge-in">{{ n.event }}</span>
+          <p style="margin:6px 0 0;color:var(--espresso);font-size:0.9rem;">{{ n.message }}</p>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p style="padding:14px;background:var(--bg-cream);border-radius:10px;border:1px dashed var(--border);">
+          No alerts triggered yet. Add a new book or restock an out-of-stock title via <code>PATCH /books/&lt;id&gt;/stock</code> to see live notifications here!
+        </p>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}
